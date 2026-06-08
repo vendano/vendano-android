@@ -2,11 +2,12 @@
 
 ### Simple, contact-based ADA for everyone
 
-Vendano is an open-source iOS wallet that lets anyone **send and receive ADA (and native tokens) using a phone number or e-mail address** instead of a 58-character address.
+Vendano is an open-source mobile wallet that lets anyone **send and receive ADA (and native tokens) using a phone number or e-mail address** instead of a 58-character address.
 
 The goal is to make Cardano transactions feel as familiar as texting: no arcane jargon and an interface that guides first-time users in plain language.
 
 > **Why there’s room for Vendano**
+> 
 > Most Cardano wallets excel at power-user features (staking dashboards, hardware-wallet pairing, multi-asset portfolios), yet still ask newcomers to master new concepts before they can move a single coin. Vendano's mission focuses on **on-ramp simplicity**: features such as verified contacts, one-tap transfers, and automatic on-chain “claim” flows for recipients who haven’t installed the app yet.
 
 ### Repository Overview
