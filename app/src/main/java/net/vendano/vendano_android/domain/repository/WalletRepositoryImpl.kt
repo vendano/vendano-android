@@ -109,14 +109,15 @@ class WalletRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun saveSeedWords(words: List<String>) {
+    override suspend fun saveSeedWords(words: List<String>) = withContext(Dispatchers.IO) {
         secureKeyStore.saveSeedWords(words)
     }
 
-    override suspend fun loadSeedWords(): List<String>? =
+    override suspend fun loadSeedWords(): List<String>? = withContext(Dispatchers.IO) {
         secureKeyStore.loadSeedWords()
+    }
 
-    override suspend fun clearWallet() {
+    override suspend fun clearWallet() = withContext(Dispatchers.IO) {
         secureKeyStore.clearSeedWords()
         activeWallet = null
         cachedUtxos = emptyList()
@@ -267,8 +268,7 @@ class WalletRepositoryImpl @Inject constructor(
                     walletAddress = walletAddress,
                 )
             }
-            transactionDao.clearForWallet(walletAddress)
-            transactionDao.insertAll(entities)
+            transactionDao.replaceTransactions(walletAddress, entities)
 
             Result.success(rawTxs)
         } catch (e: Exception) {

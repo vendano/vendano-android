@@ -39,8 +39,14 @@ class SecureKeyStore @Inject constructor(
 
     // ─── Seed words ────────────────────────────────────────────
 
+    /**
+     * Persists seed words synchronously. Must be called from a background thread
+     * (e.g. inside withContext(Dispatchers.IO)) — commit() blocks until the write
+     * is flushed to disk, guaranteeing durability even if the process is killed
+     * immediately after this call returns.
+     */
     fun saveSeedWords(words: List<String>) {
-        prefs.edit().putString(KEY_SEED_WORDS, gson.toJson(words)).apply()
+        prefs.edit().putString(KEY_SEED_WORDS, gson.toJson(words)).commit()
     }
 
     fun loadSeedWords(): List<String>? {
@@ -54,7 +60,7 @@ class SecureKeyStore @Inject constructor(
     }
 
     fun clearSeedWords() {
-        prefs.edit().remove(KEY_SEED_WORDS).apply()
+        prefs.edit().remove(KEY_SEED_WORDS).commit()
     }
 
     fun hasSeedWords(): Boolean = prefs.contains(KEY_SEED_WORDS)
