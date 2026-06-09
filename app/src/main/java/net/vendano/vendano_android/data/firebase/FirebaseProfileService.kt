@@ -179,7 +179,15 @@ class FirebaseProfileService @Inject constructor() {
      */
     suspend fun fetchRecipient(handle: String): Recipient? {
         return try {
-            val hash = handle.sha256Base64()
+            // Normalize phone numbers to digits-only before hashing, matching savePhone().
+            // E.164 strings like "+15551234567" must hash as "15551234567"; other handles
+            // (email addresses, wallet bech32) are unchanged by the filter.
+            val normalizedHandle = if (handle.startsWith("+") && handle.drop(1).all { it.isDigit() }) {
+                handle.filter { it.isDigit() }
+            } else {
+                handle
+            }
+            val hash = normalizedHandle.sha256Base64()
             val col = db.collection("public")
 
             val queries = listOf(
@@ -331,7 +339,9 @@ class FirebaseProfileService @Inject constructor() {
     }
 
     private fun resizeJpeg(input: ByteArray, targetSize: Int): ByteArray {
+        // decodeByteArray returns null for corrupt or non-image data; guard against NPE.
         val bmp = BitmapFactory.decodeByteArray(input, 0, input.size)
+            ?: throw IllegalArgumentException("Could not decode avatar image bytes")
         val side = minOf(bmp.width, bmp.height)
         val x = (bmp.width - side) / 2
         val y = (bmp.height - side) / 2

@@ -60,13 +60,17 @@ class CardanoWallet(
      * account 0, this is a pragmatic approximation that satisfies most wallet
      * recovery scenarios where funds land on the primary address.
      */
-    fun externalAddress(index: Int): String {
+    fun externalAddress(index: Int): String? {
         if (index == 0) return primaryAddress
         return try {
             Account(network, mnemonicWords.joinToString(" "), index).baseAddress()
         } catch (e: Exception) {
             Log.w(TAG, "Address derivation at index $index failed: ${e.message}")
-            primaryAddress
+            // Return null so discoverAddresses() treats this slot as unused and continues.
+            // Previously returned primaryAddress, which caused the discovery loop to never
+            // terminate: primaryAddress has UTxOs, so consecutiveUnused was reset to 0 on
+            // every derivation failure, pinning the loop below the gap limit forever.
+            null
         }
     }
 
@@ -90,6 +94,12 @@ class CardanoWallet(
 
         while (consecutiveUnused < ADDRESS_GAP_LIMIT) {
             val addr = externalAddress(index)
+            if (addr == null) {
+                // Derivation failed for this index; treat as unused and keep scanning.
+                consecutiveUnused++
+                index++
+                continue
+            }
             try {
                 val utxos: List<Utxo> = utxoSupplier.getAll(addr)
                 if (utxos.isNotEmpty()) {
