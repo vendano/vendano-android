@@ -267,8 +267,7 @@ class WalletRepositoryImpl @Inject constructor(
                     walletAddress = walletAddress,
                 )
             }
-            transactionDao.clearForWallet(walletAddress)
-            transactionDao.insertAll(entities)
+            transactionDao.replaceTransactions(walletAddress, entities)
 
             Result.success(rawTxs)
         } catch (e: Exception) {

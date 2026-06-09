@@ -21,6 +21,20 @@ interface TransactionDao {
     @Query("DELETE FROM transactions WHERE walletAddress = :walletAddress")
     suspend fun clearForWallet(walletAddress: String)
 
+    /**
+     * Atomically replace all cached transactions for a wallet.
+     *
+     * Previously, callers called clearForWallet() followed by insertAll() as two
+     * separate DAO calls without a wrapping transaction. A process kill or concurrent
+     * refresh between those two calls would leave the cache permanently empty.
+     * Using @Transaction guarantees both operations succeed or both are rolled back.
+     */
+    @Transaction
+    suspend fun replaceTransactions(walletAddress: String, transactions: List<TransactionEntity>) {
+        clearForWallet(walletAddress)
+        insertAll(transactions)
+    }
+
     @Query("DELETE FROM transactions")
     suspend fun clearAll()
 

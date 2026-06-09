@@ -140,7 +140,12 @@ fun AuthScreen(
                         val fullPhone = "$dialCode${phone.filter { it.isDigit() }}"
                         appViewModel.setOtpPhone(fullPhone)
                         activity?.let { act ->
-                            vm.sendPhoneOtp(fullPhone, act, onOtpSent)
+                            vm.sendPhoneOtp(
+                            phone = fullPhone,
+                            activity = act,
+                            onSent = onOtpSent,
+                            onAutoVerified = onSuccess,
+                        )
                         }
                     },
                     enabled = !loading && phone.filter { it.isDigit() }.length >= 6,
