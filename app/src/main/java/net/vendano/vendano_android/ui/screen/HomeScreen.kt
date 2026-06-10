@@ -315,7 +315,7 @@ fun HomeScreen(
                     onClick = {
                         showSettings = false
                         FirebaseAuth.getInstance().signOut()
-                        appViewModel.nukeAccount()
+                        appViewModel.signOut()
                     },
                 )
             }
