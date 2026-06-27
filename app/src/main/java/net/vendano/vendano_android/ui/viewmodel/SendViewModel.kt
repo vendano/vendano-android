@@ -34,6 +34,11 @@ class SendViewModel @Inject constructor(
     fun setSendMethod(m: SendMethod) {
         _sendMethod.value = m
         _recipient.value = null
+        // Clear the address input when leaving ADDRESS mode so a stale address
+        // can never be used as the send destination in EMAIL or PHONE mode.
+        if (m != SendMethod.ADDRESS) {
+            _addressInput.value = ""
+        }
     }
 
     // ─── Input fields ─────────────────────────────────────────────

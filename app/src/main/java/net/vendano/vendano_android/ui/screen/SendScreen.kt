@@ -251,7 +251,8 @@ fun SendScreen(
                             walletViewModel.refreshOnChainData()
                         }
                     },
-                    enabled = !sending && adaDouble > 0.0 && (recipient != null || addressInput.startsWith("addr")),
+                    enabled = !sending && adaDouble > 0.0 &&
+                        (recipient != null || (method == SendMethod.ADDRESS && addressInput.startsWith("addr"))),
                 )
 
                 Spacer(Modifier.height(32.dp))
