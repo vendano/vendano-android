@@ -22,9 +22,12 @@ interface TransactionDao {
     suspend fun clearForWallet(walletAddress: String)
 
     /**
-     * Atomically replaces all cached transactions for a wallet. The @Transaction
-     * annotation wraps both the DELETE and the INSERT in a single SQLite transaction
-     * so a failure between the two operations cannot leave the table empty.
+     * Atomically replace all cached transactions for a wallet.
+     *
+     * Previously, callers called clearForWallet() followed by insertAll() as two
+     * separate DAO calls without a wrapping transaction. A process kill or concurrent
+     * refresh between those two calls would leave the cache permanently empty.
+     * Using @Transaction guarantees both operations succeed or both are rolled back.
      */
     @Transaction
     suspend fun replaceTransactions(walletAddress: String, transactions: List<TransactionEntity>) {

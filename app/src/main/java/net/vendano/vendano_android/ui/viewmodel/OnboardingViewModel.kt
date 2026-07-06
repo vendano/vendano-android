@@ -63,7 +63,12 @@ class OnboardingViewModel @Inject constructor(
     val otpCode: StateFlow<String> = _otpCode.asStateFlow()
     fun setOtpCode(v: String) { _otpCode.value = v }
 
-    fun sendPhoneOtp(phone: String, activity: android.app.Activity, onSent: () -> Unit) {
+    fun sendPhoneOtp(
+        phone: String,
+        activity: android.app.Activity,
+        onSent: () -> Unit,
+        onAutoVerified: () -> Unit = {},
+    ) {
         _authLoading.value = true
         viewModelScope.launch {
             authService.sendPhoneOtp(
@@ -76,6 +81,10 @@ class OnboardingViewModel @Inject constructor(
                 onError = { err ->
                     _authLoading.value = false
                     _authError.value = err
+                },
+                onAutoVerified = {
+                    _authLoading.value = false
+                    onAutoVerified()
                 },
             )
         }

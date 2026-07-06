@@ -55,13 +55,31 @@ class FirebaseAuthService @Inject constructor(
         activity: android.app.Activity,
         onCodeSent: () -> Unit,
         onError: (String) -> Unit,
+        onAutoVerified: () -> Unit = {},
     ) {
         prefs.setPhoneNumber(e164)
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                // Auto-verification (rare on Android) – sign in is handled automatically
+                // Google Play Services auto-read the SMS and provided the credential.
+                // We must sign in (or link) here ourselves — it is NOT done automatically.
+                // Failing to do so leaves the user unauthenticated on devices that support
+                // instant-verification, silently breaking the entire onboarding flow.
+                ioScope.launch {
+                    try {
+                        val user = auth.currentUser
+                        if (user != null) {
+                            user.linkWithCredential(credential).await()
+                        } else {
+                            auth.signInWithCredential(credential).await()
+                        }
+                        onAutoVerified()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Auto-verification sign-in failed: ${e.message}")
+                        onError(e.localizedMessage ?: "Auto-verification failed")
+                    }
+                }
             }
 
             override fun onVerificationFailed(e: FirebaseException) {

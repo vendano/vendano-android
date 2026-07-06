@@ -46,6 +46,11 @@ class SecureKeyStore @Inject constructor(
      * immediately after this call returns.
      */
     fun saveSeedWords(words: List<String>) {
+        // Use commit() (synchronous) rather than apply() (async) so the seed is
+        // durably written before control returns to the caller. apply() queues the write
+        // on a background thread: if the process is killed (battery death, OS kill) in the
+        // window between apply() returning and the write completing, the seed is lost and
+        // the wallet becomes permanently unrecoverable.
         prefs.edit().putString(KEY_SEED_WORDS, gson.toJson(words)).commit()
     }
 
