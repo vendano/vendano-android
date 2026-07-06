@@ -166,6 +166,29 @@ fun VendanoNavGraph(
 
         composable(Routes.HOME) {
             val nftVm: NFTGalleryViewModel = hiltViewModel()
+
+            // On cold start bootstrap() loads the wallet into WalletRepositoryImpl but never
+            // calls walletViewModel.configure(), so _walletAddress stays "" and every balance /
+            // transaction refresh guard fires `if (_walletAddress.isEmpty()) return` without
+            // loading anything.  React to appViewModel.walletAddress so that regardless of
+            // whether we arrive here from bootstrap (returning user) or from the import/create
+            // flow, the WalletViewModel is always properly seeded.
+            val appWalletAddress by appViewModel.walletAddress.collectAsState()
+            val appEnv by appViewModel.environment.collectAsState()
+            LaunchedEffect(appWalletAddress, appEnv) {
+                if (appWalletAddress.isNotEmpty() &&
+                    walletViewModel.walletAddress.value != appWalletAddress
+                ) {
+                    walletViewModel.configure(
+                        walletAddress = appWalletAddress,
+                        stakeAddress = "",
+                        allAddresses = listOf(appWalletAddress),
+                        env = appEnv,
+                    )
+                    walletViewModel.refreshOnChainData()
+                }
+            }
+
             HomeScreen(
                 appViewModel = appViewModel,
                 walletViewModel = walletViewModel,
