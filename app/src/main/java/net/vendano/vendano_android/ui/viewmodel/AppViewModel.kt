@@ -267,6 +267,32 @@ class AppViewModel @Inject constructor(
         _onboardingStep.value = OnboardingStep.WALLET_CHOICE
     }
 
+    /**
+     * Signs out the current user without touching any server-side data.
+     * Clears only the local session state (wallet seed, cached prefs, UI state)
+     * so the user can sign back in and recover their profile.
+     *
+     * IMPORTANT: Do NOT call [nukeAccount] for a sign-out flow.
+     * [nukeAccount] permanently deletes all Firebase/Firestore data and is
+     * reserved exclusively for "Delete Account" scenarios.
+     */
+    fun signOut() {
+        _walletAddress.value = ""
+        _seedWords.value = emptyList()
+        _displayName.value = ""
+        _avatarUrl.value = null
+        _avatarBytes.value = null
+        _phone.value = emptyList()
+        _email.value = emptyList()
+        _viewedFaqIds.value = emptySet()
+        viewModelScope.launch {
+            walletRepo.clearWallet()
+            prefs.setAvatarBase64(null)
+            prefs.clearAuthPrefs()
+        }
+        _onboardingStep.value = OnboardingStep.SPLASH
+    }
+
     fun nukeAccount() {
         viewModelScope.launch {
             removeWallet()
