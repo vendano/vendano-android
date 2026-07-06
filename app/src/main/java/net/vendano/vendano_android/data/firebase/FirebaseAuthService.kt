@@ -208,17 +208,29 @@ class FirebaseAuthService @Inject constructor(
 
     // ─── Sign out / Delete ────────────────────────────────────────
 
-    suspend fun signOut() {
-        try {
-            auth.currentUser?.delete()?.await()
-        } catch (e: Exception) {
-            Log.w(TAG, "Delete user failed: ${e.message}")
-        }
+    /**
+     * Signs the current user out of Firebase without affecting the account.
+     * To permanently delete the account, call [deleteAccount] explicitly.
+     */
+    fun signOut() {
         try {
             auth.signOut()
         } catch (e: Exception) {
             Log.w(TAG, "Sign-out failed: ${e.message}")
         }
+    }
+
+    /**
+     * Permanently deletes the Firebase account. This is irreversible — only call
+     * from an explicit "Delete account" flow, never from a normal sign-out path.
+     */
+    suspend fun deleteAccount() {
+        try {
+            auth.currentUser?.delete()?.await()
+        } catch (e: Exception) {
+            Log.w(TAG, "Delete account failed: ${e.message}")
+        }
+        signOut()
     }
 
     // ─── Unlink handles ───────────────────────────────────────────
